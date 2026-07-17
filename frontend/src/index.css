@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: #0f172a;
+  /* Slate 900 */
+  background-color: #f8fafc;
+  /* Slate 50 */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Premium Card and Dialog Panels */
+.premium-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
+  transition: all 0.25s ease-in-out !important;
+}
+
+.premium-card:hover {
+  box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.08) !important;
+  transform: translateY(-2px);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 3px;
+  /* Sleek vertical scrollbar width */
+  height: 3px;
+  /* Sleek horizontal scrollbar height */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Fix text wrap and overlap issues on all screens */
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th,
+td {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Enforce no wrap for every column of every table */
+.MuiTableCell-root {
+  white-space: nowrap !important;
+}
+.MuiTableCell-head {
+  padding: 8px 12px !important; /* Sleek header padding */
+}
+.MuiTableCell-body {
+  padding: 5px 12px !important; /* Compact row padding */
+}
