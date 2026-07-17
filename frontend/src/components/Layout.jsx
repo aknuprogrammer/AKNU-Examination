@@ -23,7 +23,7 @@ export default function Layout() {
           component="main" 
           sx={{ 
             flexGrow: 1, 
-            pt: { xs: '84px', md: '96px' },
+            pt: { xs: '96px', md: '108px' },
             px: { xs: 2.5, md: 4 },
             pb: 4,
             ml: { xs: 0, md: '260px' },

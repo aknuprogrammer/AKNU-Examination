@@ -160,10 +160,10 @@ export default function Sidebar({ mobileOpen, onDrawerClose }) {
           flexShrink: 0,
           borderRight: '1px solid rgba(84, 122, 149, 0.25)',
           background: '#2C3947',
-          height: 'calc(100vh - 64px)',
+          height: 'calc(100vh - 76px)',
           overflowY: 'auto',
           position: 'fixed',
-          top: 64,
+          top: 76,
           left: 0,
           zIndex: (theme) => theme.zIndex.drawer
         }}
