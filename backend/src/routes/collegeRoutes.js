@@ -8,6 +8,7 @@ import { encryptPassword, decryptPassword } from '../utils/crypto.js';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { logAction } from '../services/auditService.js';
 
 const router = Router();
 const SECURE_ZIP_DIR = path.resolve('secure_storage/colleges');
@@ -24,7 +25,7 @@ const getClientIp = (req) => {
 router.post(
   '/',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   validate(collegeSchema),
   async (req, res, next) => {
     try {
@@ -48,7 +49,7 @@ router.post(
 router.get(
   '/',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer', 'Principal']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer', 'Principal']),
   async (req, res, next) => {
     try {
       let colleges;
@@ -95,7 +96,7 @@ router.get(
         }
 
         let plainPassword = '';
-        if (fileExists && clg.dayPasswordEncrypted && ['Super Admin', 'Controller of Examinations'].includes(req.user.role)) {
+        if (fileExists && clg.dayPasswordEncrypted && ['Super Admin', 'Admin', 'Controller of Examinations'].includes(req.user.role)) {
           try {
             plainPassword = decryptPassword(clg.dayPasswordEncrypted, clg.dayPasswordIv, clg.dayPasswordTag);
           } catch (e) {
@@ -123,7 +124,7 @@ router.get(
 router.post(
   '/bulk',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   async (req, res, next) => {
     try {
       const ip = req.ip || req.connection.remoteAddress;
@@ -154,7 +155,7 @@ router.post(
 router.put(
   '/:id',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   validate(collegeSchema.partial()), // partial validation schema support
   async (req, res, next) => {
     try {
@@ -179,7 +180,7 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -219,7 +220,7 @@ const uploadZip = multer({
 router.post(
   '/upload-papers',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   uploadZip.single('zipFile'),
   async (req, res, next) => {
     try {
@@ -387,6 +388,16 @@ router.post(
         }
       }
 
+      await logAction({
+        userId: req.user.id,
+        username: req.user.username,
+        role: req.user.role,
+        action: 'UPLOAD_PAPERS',
+        ipAddress: getClientIp(req),
+        userAgent: req.headers['user-agent'] || '',
+        details: { successCount: results.successCount, examSession, examDate }
+      });
+
       res.json({
         success: true,
         message: 'Combined ZIP processed and college question paper ZIP folders generated.',
@@ -403,7 +414,7 @@ router.post(
 router.post(
   '/deploy-papers',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   async (req, res, next) => {
     try {
       const { examSession = '', examDate = '', collegeCode = '' } = req.body;
@@ -443,6 +454,16 @@ router.post(
         deployedCount++;
       }
 
+      await logAction({
+        userId: req.user.id,
+        username: req.user.username,
+        role: req.user.role,
+        action: 'DEPLOY_PAPERS',
+        ipAddress: ip,
+        userAgent: req.headers['user-agent'] || '',
+        details: { examSession, examDate, collegeCode, deployedCount }
+      });
+
       res.json({
         success: true,
         message: `Successfully deployed question papers for ${deployedCount} college(s). Principal access is now active.`,
@@ -458,7 +479,7 @@ router.post(
 router.post(
   '/redeploy/:collegeCode',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer']),
   async (req, res, next) => {
     try {
       const { collegeCode } = req.params;
@@ -512,6 +533,16 @@ router.post(
         category: category
       });
       await college.save();
+
+      await logAction({
+        userId: req.user.id,
+        username: req.user.username,
+        role: req.user.role,
+        action: 'REDEPLOY_PAPERS',
+        ipAddress: ip,
+        userAgent: req.headers['user-agent'] || '',
+        details: { collegeCode, reason: trimmedReason }
+      });
 
       res.json({
         success: true,
@@ -680,6 +711,16 @@ router.get(
       college.downloadCount = (college.downloadCount || 0) + 1;
       await college.save();
 
+      await logAction({
+        userId: req.user.id,
+        username: req.user.username,
+        role: req.user.role,
+        action: 'DOWNLOAD_PAPERS',
+        ipAddress: ip,
+        userAgent: req.headers['user-agent'] || '',
+        details: { collegeCode: college.collegeCode }
+      });
+
       res.download(zipPath, `QP_${college.collegeCode}.zip`);
     } catch (error) {
       next(error);
@@ -766,7 +807,7 @@ router.get(
 router.get(
   '/download-papers/:collegeCode',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   async (req, res, next) => {
     try {
       const { collegeCode } = req.params;
@@ -786,7 +827,7 @@ router.get(
 router.delete(
   '/papers/:collegeCode',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   async (req, res, next) => {
     try {
       const { collegeCode } = req.params;
@@ -937,7 +978,7 @@ router.post('/ai/categorize-reason', authenticateToken, async (req, res, next) =
 });
 
 // 3. AI Smart Audit & Session Summarizer for COE
-router.post('/ai/summarize-session', authenticateToken, rbac(['Super Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer']), async (req, res, next) => {
+router.post('/ai/summarize-session', authenticateToken, rbac(['Super Admin', 'Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer']), async (req, res, next) => {
   try {
     const { examDate, examSession } = req.body;
     let query = {};
@@ -1119,7 +1160,7 @@ router.post('/ai/helpdesk', authenticateToken, async (req, res, next) => {
 });
 
 // 5. AI Pre-Flight OCR & Header Verification
-router.post('/ai/preflight-check', authenticateToken, rbac(['Super Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff']), async (req, res, next) => {
+router.post('/ai/preflight-check', authenticateToken, rbac(['Super Admin', 'Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff']), async (req, res, next) => {
   try {
     const { fileName, examDate, examSession, fileSize, totalPages } = req.body;
     const issues = [];
@@ -1191,7 +1232,7 @@ router.get('/:id', authenticateToken, async (req, res, next) => {
     }
 
     // Admins/Observers
-    const allowedRoles = ['Super Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer'];
+    const allowedRoles = ['Super Admin', 'Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer'];
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Forbidden.' });
     }

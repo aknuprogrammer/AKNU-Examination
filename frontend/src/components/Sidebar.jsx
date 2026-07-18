@@ -7,6 +7,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import LogoutIcon from '@mui/icons-material/Logout';
+import HistoryIcon from '@mui/icons-material/History';
 import PropTypes from 'prop-types';
 import api from '../utils/api.js';
 import { logoutSuccess } from '../store/authSlice.js';
@@ -30,6 +31,7 @@ export default function Sidebar({ mobileOpen, onDrawerClose }) {
 
   const isAdminOrStaff = [
     'Super Admin',
+    'Admin',
     'Controller of Examinations',
     'Confidential Section',
     'Exam Cell Staff',
@@ -40,13 +42,17 @@ export default function Sidebar({ mobileOpen, onDrawerClose }) {
 
   if (isAdminOrStaff) {
     menuItems.push(
-      { text: 'Colleges', path: '/colleges', icon: <SchoolIcon /> },
+      { text: 'Exam Centres', path: '/colleges', icon: <SchoolIcon /> },
       { text: 'QP & Password Upload', path: '/paper-distribution', icon: <CloudUploadIcon /> },
       { text: 'Deployment', path: '/deployment', icon: <RocketLaunchIcon /> }
     );
+    
+    if (user.role === 'Super Admin') {
+      menuItems.push({ text: 'Activity Logs', path: '/activity-logs', icon: <HistoryIcon /> });
+    }
   } else if (user.role === 'Principal') {
     menuItems.push(
-      { text: 'Principal Portal', path: '/', icon: <DashboardIcon /> }
+      { text: 'Exam Centre Portal', path: '/', icon: <DashboardIcon /> }
     );
   }
 

@@ -21,7 +21,7 @@ import api from '../utils/api.js';
 
 export default function Colleges() {
   const { user } = useSelector((state) => state.auth);
-  const canWrite = user && ['Super Admin', 'Controller of Examinations'].includes(user.role);
+  const canWrite = user && ['Super Admin', 'Admin', 'Controller of Examinations'].includes(user.role);
 
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -224,7 +224,7 @@ export default function Colleges() {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, mb: 2, minHeight: 40, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h4" fontWeight={800}>
-          College <span style={{ color: '#547A95' }}>Management</span>
+          Exam Centre <span style={{ color: '#547A95' }}>Management</span>
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
@@ -260,7 +260,7 @@ export default function Colleges() {
                 startIcon={<AddIcon />}
                 onClick={() => handleOpenDialog()}
               >
-                Add College
+                Add Exam Centre
               </Button>
             </>
           )}
@@ -268,19 +268,19 @@ export default function Colleges() {
       </Box>
 
       {loading ? (
-        <Typography>Loading colleges...</Typography>
+        <Typography>Loading Exam Centres...</Typography>
       ) : (
         <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
           <Table sx={{ minWidth: 800 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>Code</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>College Name</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Exam Centre Code</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Exam Centre Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>District</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Principal Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Principal Email</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Principal Mobile</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Portal Status</TableCell>
+                {/* <TableCell sx={{ fontWeight: 700 }}>Portal Status</TableCell> */}
                 {canWrite && <TableCell sx={{ fontWeight: 700 }} align="right">Actions</TableCell>}
               </TableRow>
             </TableHead>
@@ -298,14 +298,14 @@ export default function Colleges() {
                     <TableCell>{clg.principalName}</TableCell>
                     <TableCell>{clg.principalEmail}</TableCell>
                     <TableCell>{clg.principalMobile}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Chip
                         icon={clg.portalStatus === 'active' ? <CheckIcon /> : <BlockIcon />}
                         label={clg.portalStatus.toUpperCase()}
                         color={clg.portalStatus === 'active' ? 'success' : 'default'}
                         size="small"
                       />
-                    </TableCell>
+                    </TableCell> */}
                     {canWrite && (
                       <TableCell align="right">
                         <IconButton onClick={() => handleOpenDialog(clg)} size="small" sx={{ mr: 1, color: 'text.secondary' }}>
@@ -333,7 +333,7 @@ export default function Colleges() {
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth sx={{ '& .MuiDialog-paper': { m: { xs: 1.5, sm: 4 }, width: { xs: 'calc(100% - 24px)', sm: 'auto' } } }}>
         <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-          {editingCollege ? 'Modify College Details' : 'Register New College'}
+          {editingCollege ? 'Modify Exam Centre Details' : 'Register New Exam Centre'}
         </DialogTitle>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <DialogContent sx={{ pt: 1, pb: 2 }}>
@@ -342,23 +342,23 @@ export default function Colleges() {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="College Code (Unique)"
+                  label="Exam Centre Code (Unique)"
                   size="small"
                   fullWidth
                   slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('collegeCode', { required: 'College code is required' })}
-                  error={!!errors.collegeCode}
+                  {...register('collegeCode', { required: 'Exam Centre code is required' })}
+                  error={!!errors.collegeCode}  
                   helperText={errors.collegeCode?.message}
                   disabled={!!editingCollege} // code is immutable
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
-                  label="College Name"
+                  label="Exam Centre Name"
                   size="small"
                   fullWidth
                   slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('collegeName', { required: 'College name is required' })}
+                  {...register('collegeName', { required: 'Exam Centre name is required' })}
                   error={!!errors.collegeName}
                   helperText={errors.collegeName?.message}
                 />

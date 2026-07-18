@@ -23,6 +23,7 @@ import ResetPassword from './pages/ResetPassword.jsx';
 import Colleges from './pages/Colleges.jsx';
 import PaperDistribution from './pages/PaperDistribution.jsx';
 import Deployment from './pages/Deployment.jsx';
+import ActivityLogs from './pages/ActivityLogs.jsx';
 
 // Redux & Api
 import { loginSuccess, logoutSuccess } from './store/authSlice.js';
@@ -130,6 +131,7 @@ function IndexPortal() {
 
   const isAdminOrStaff = [
     'Super Admin',
+    'Admin',
     'Controller of Examinations',
     'Confidential Section',
     'Exam Cell Staff',
@@ -432,7 +434,7 @@ export default function App() {
     );
   }
 
-  const adminRoles = ['Super Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer'];
+  const adminRoles = ['Super Admin', 'Admin', 'Controller of Examinations', 'Confidential Section', 'Exam Cell Staff', 'Observer'];
 
   return (
     <Routes>
@@ -500,6 +502,16 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={adminRoles}>
               <Deployment />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Activity Logs (Super Admin Only) */}
+        <Route
+          path="activity-logs"
+          element={
+            <ProtectedRoute allowedRoles={['Super Admin']}>
+              <ActivityLogs />
             </ProtectedRoute>
           }
         />

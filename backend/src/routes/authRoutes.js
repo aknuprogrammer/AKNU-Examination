@@ -11,11 +11,11 @@ const router = Router();
 // Login
 router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     const ip = req.ip || req.connection.remoteAddress;
     const userAgent = req.headers['user-agent'] || '';
 
-    const result = await authService.loginUser({ username, password, ip, userAgent });
+    const result = await authService.loginUser({ email, password, ip, userAgent });
 
     // Set refresh token in HttpOnly Cookie
     res.cookie('refreshToken', result.refreshToken, {
@@ -114,7 +114,7 @@ router.post('/change-password', authenticateToken, validate(updatePasswordSchema
 router.post(
   '/reset-principal-password/:principalUserId',
   authenticateToken,
-  rbac(['Super Admin', 'Controller of Examinations']),
+  rbac(['Super Admin', 'Admin', 'Controller of Examinations']),
   validate(resetPasswordSchema),
   async (req, res, next) => {
     try {

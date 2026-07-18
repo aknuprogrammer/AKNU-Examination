@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box, Typography, Button, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, Chip, IconButton, Dialog,
@@ -40,6 +41,7 @@ const formatTimestampTime = (dateVal) => {
 };
 
 export default function PaperDistribution() {
+  const { user } = useSelector((state) => state.auth);
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -134,10 +136,13 @@ export default function PaperDistribution() {
         return;
       }
 
-      // Initialise per-college password map with empty strings
+      // Initialise per-college password map with auto-generated passwords
       const pwMap = {};
       const showMap = {};
-      detected.forEach(({ code }) => { pwMap[code] = ''; showMap[code] = false; });
+      detected.forEach(({ code }) => { 
+        pwMap[code] = code + '@' + Math.random().toString(36).substring(2, 8).toUpperCase(); 
+        showMap[code] = false; 
+      });
       setDetectedColleges(detected);
       setPerCollegePasswords(pwMap);
       setShowPasswords(showMap);
@@ -339,20 +344,20 @@ export default function PaperDistribution() {
             <Table sx={{ minWidth: 950 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>Code</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>College Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Exam Centre Code</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Exam Centre Name</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>ZIP File Name</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Exam Date & Session</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Uploaded At</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Uploaded System IP</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>ZIP Decryption Password</TableCell>
+                  {user?.role === 'Super Admin' && <TableCell sx={{ fontWeight: 700 }}>Uploaded System IP</TableCell>}
+                  {user?.role === 'Super Admin' && <TableCell sx={{ fontWeight: 700 }}>ZIP Decryption Password</TableCell>}
                   <TableCell sx={{ fontWeight: 700 }} align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredColleges.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={user?.role === 'Super Admin' ? 8 : 6} align="center" sx={{ py: 4 }}>
                       {searchQuery ? 'No matching college question paper ZIP folders found.' : 'No college question paper ZIP folders uploaded yet. Click "Upload Combined QP" to get started.'}
                     </TableCell>
                   </TableRow>
@@ -390,25 +395,29 @@ export default function PaperDistribution() {
                           <span style={{ color: '#aaa', fontSize: '0.85rem' }}>—</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {clg.zipUploadedIp ? (
-                          <Chip label={`💻 ${clg.zipUploadedIp}`} size="small" sx={{ fontFamily: 'monospace', fontWeight: 700, bgcolor: '#f1f5f9', color: '#334155' }} />
-                        ) : (
-                          <span style={{ color: '#aaa', fontSize: '0.85rem' }}>—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {clg.dayPassword ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <code>{clg.dayPassword}</code>
-                            <IconButton size="small" onClick={() => handleCopyPassword(clg.dayPassword)} title="Copy Password">
-                              <ContentCopyIcon sx={{ fontSize: 14 }} />
-                            </IconButton>
-                          </Box>
-                        ) : (
-                          <span style={{ color: '#aaa', fontSize: '0.85rem' }}>N/A</span>
-                        )}
-                      </TableCell>
+                      {user?.role === 'Super Admin' && (
+                        <TableCell>
+                          {clg.zipUploadedIp ? (
+                            <Chip label={`💻 ${clg.zipUploadedIp}`} size="small" sx={{ fontFamily: 'monospace', fontWeight: 700, bgcolor: '#f1f5f9', color: '#334155' }} />
+                          ) : (
+                            <span style={{ color: '#aaa', fontSize: '0.85rem' }}>—</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {user?.role === 'Super Admin' && (
+                        <TableCell>
+                          {clg.dayPassword ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <code>{clg.dayPassword}</code>
+                              <IconButton size="small" onClick={() => handleCopyPassword(clg.dayPassword)} title="Copy Password">
+                                <ContentCopyIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
+                            </Box>
+                          ) : (
+                            <span style={{ color: '#aaa', fontSize: '0.85rem' }}>N/A</span>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell align="right">
                         <IconButton
                           onClick={() => handleDownloadZip(clg.collegeCode)}
@@ -454,13 +463,7 @@ export default function PaperDistribution() {
       >
         <DialogTitle sx={{ fontWeight: 800 }}>Deploy Combined Papers ZIP</DialogTitle>
         <DialogContent dividers>
-          {/* Stepper */}
-          {!uploadResult && (
-            <Stepper activeStep={dialogStep} sx={{ mb: 3 }}>
-              <Step><StepLabel>Select ZIP File</StepLabel></Step>
-              <Step><StepLabel>Set College Passwords</StepLabel></Step>
-            </Stepper>
-          )}
+          {/* No Stepper needed anymore */}
 
           {uploadError && <Alert severity="error" sx={{ mb: 2 }}>{uploadError}</Alert>}
           {zipParseError && <Alert severity="warning" sx={{ mb: 2 }}>{zipParseError}</Alert>}
@@ -487,7 +490,7 @@ export default function PaperDistribution() {
                 </Box>
               )}
 
-              {uploadResult.passwords?.length > 0 && (
+              {user?.role === 'Super Admin' && uploadResult.passwords?.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" fontWeight={700} mb={1}>College ZIP Extraction Passwords:</Typography>
                   <Paper variant="outlined" sx={{ p: 1, maxHeight: 220, overflowY: 'auto' }}>
@@ -510,8 +513,8 @@ export default function PaperDistribution() {
               )}
             </Box>
 
-          ) : dialogStep === 0 ? (
-            /* --- STEP 1: Pick ZIP file & Date/Session --- */
+          ) : (
+            /* --- File Picker & Date/Session --- */
             <Box sx={{ py: 1 }}>
               <Box sx={{ mb: 3.5, p: 2.5, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
                 <Typography variant="subtitle2" fontWeight={700} mb={2.5} color="primary.main">
@@ -609,50 +612,6 @@ export default function PaperDistribution() {
                 </Box>
               )}
             </Box>
-
-          ) : (
-            /* --- STEP 2: Per-college passwords --- */
-            <Box sx={{ py: 1 }}>
-              <Alert severity="info" sx={{ mb: 3 }}>
-                Set a unique extraction password for each college question paper ZIP folder. Principals will need this password to open their downloaded ZIP folder.
-              </Alert>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 1.5 }}>
-                {detectedColleges.map(({ code, count }) => (
-                  <TextField
-                    key={code}
-                    label={`College ${code} — ZIP Extraction Password`}
-                    placeholder={`e.g. AKNU_${code}@2026`}
-                    value={perCollegePasswords[code] || ''}
-                    onChange={e => setPerCollegePasswords(prev => ({ ...prev, [code]: e.target.value }))}
-                    type={showPasswords[code] ? 'text' : 'password'}
-                    fullWidth
-                    size="small"
-                    required
-                    helperText={`${count} question paper${count > 1 ? 's' : ''} detected for this college`}
-                    slotProps={{
-                      inputLabel: { shrink: true },
-                      input: {
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton
-                              size="small"
-                              edge="end"
-                              onClick={() => setShowPasswords(prev => ({ ...prev, [code]: !prev[code] }))}
-                              aria-label={showPasswords[code] ? 'Hide password' : 'Show password'}
-                            >
-                              {showPasswords[code]
-                                ? <VisibilityOffIcon fontSize="small" />
-                                : <VisibilityIcon fontSize="small" />}
-                            </IconButton>
-                          </InputAdornment>
-                        )
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
           )}
         </DialogContent>
 
@@ -661,26 +620,13 @@ export default function PaperDistribution() {
             <Button variant="contained" onClick={() => { resetUploadDialog(); setUploadDialogOpen(false); }}>
               Done
             </Button>
-          ) : dialogStep === 0 ? (
-            <>
-              <Button onClick={() => { resetUploadDialog(); setUploadDialogOpen(false); }}>Cancel</Button>
-              <Button
-                variant="contained"
-                disabled={detectedColleges.length === 0}
-                onClick={() => setDialogStep(1)}
-              >
-                Next: Set Passwords
-              </Button>
-            </>
           ) : (
             <>
-              <Button onClick={() => { setDialogStep(0); setUploadError(null); }} disabled={uploadLoading}>
-                ← Back
-              </Button>
+              <Button onClick={() => { resetUploadDialog(); setUploadDialogOpen(false); }} disabled={uploadLoading}>Cancel</Button>
               <Button
-                onClick={handleUploadCombined}
                 variant="contained"
-                disabled={uploadLoading}
+                disabled={detectedColleges.length === 0 || uploadLoading}
+                onClick={handleUploadCombined}
                 startIcon={uploadLoading && <CircularProgress size={16} color="inherit" />}
               >
                 {uploadLoading ? 'Processing & Zipping...' : 'Deploy Papers'}

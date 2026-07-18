@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     enum: [
       'Super Admin',
+      'Admin',
       'Controller of Examinations',
       'Confidential Section',
       'Exam Cell Staff',
@@ -59,6 +60,13 @@ const userSchema = new mongoose.Schema({
     type: String
   },
   resetPasswordExpires: {
+    type: Date
+  },
+  loginCount: {
+    type: Number,
+    default: 0
+  },
+  lastLoginAt: {
     type: Date
   }
 }, {

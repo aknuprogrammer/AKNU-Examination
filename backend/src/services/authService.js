@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import { parseUserAgent } from '../utils/userAgent.js';
 import { sendPasswordResetEmail } from './emailService.js';
+import { logAction } from './auditService.js';
 
 const ACCESS_EXPIRY = '2h';
 const REFRESH_EXPIRY = '7d';
@@ -33,12 +34,12 @@ function generateTokens(user, sessionId) {
   return { accessToken, refreshToken };
 }
 
-export async function loginUser({ username, password, ip, userAgent }) {
+export async function loginUser({ email, password, ip, userAgent }) {
   const { browser, device } = parseUserAgent(userAgent);
 
-  const user = await User.findOne({ username });
+  const user = await User.findOne({ email });
   if (!user) {
-    const error = new Error('Invalid Username or Password');
+    const error = new Error('Invalid Email or Password');
     error.statusCode = 401;
     throw error;
   }
@@ -78,9 +79,22 @@ export async function loginUser({ username, password, ip, userAgent }) {
   // Login Success: Reset attempts and locks, establish new sessionId
   user.failedLoginAttempts = 0;
   user.lockUntil = undefined;
+  user.loginCount = (user.loginCount || 0) + 1;
+  user.lastLoginAt = new Date();
   const newSessionId = uuidv4();
   user.currentSessionId = newSessionId;
   await user.save();
+
+  // Log Activity
+  await logAction({
+    userId: user._id,
+    username: user.username,
+    role: user.role,
+    action: 'LOGIN',
+    ipAddress: ip,
+    userAgent,
+    details: { message: 'User logged in successfully' }
+  });
 
   const { accessToken, refreshToken } = generateTokens(user, newSessionId);
 
@@ -138,6 +152,16 @@ export async function logoutUser(userId, sessionId, ip, userAgent) {
     // Invalidate session ID
     user.currentSessionId = undefined;
     await user.save();
+
+    await logAction({
+      userId: user._id,
+      username: user.username,
+      role: user.role,
+      action: 'LOGOUT',
+      ipAddress: ip,
+      userAgent,
+      details: { message: 'User logged out' }
+    });
   }
 }
 

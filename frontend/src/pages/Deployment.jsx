@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box, Typography, Button, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, Chip, IconButton,
@@ -13,6 +14,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import HistoryIcon from '@mui/icons-material/History';
+import GetAppIcon from '@mui/icons-material/GetApp';
 import { useToast } from '../components/ConfirmDialog.jsx';
 import api from '../utils/api.js';
 
@@ -34,6 +36,7 @@ const formatTimestampTime = (dateVal) => {
 };
 
 export default function Deployment() {
+  const { user } = useSelector((state) => state.auth);
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -210,6 +213,54 @@ export default function Deployment() {
     (c) => c.zipFileHash && c.examDate === deployDate && c.examSession === deploySession && c.isDeployed
   ).length;
 
+  const handleExportCSV = () => {
+    let headers = ['S. No', 'Exam Centre Code', 'Exam Centre Name', 'ZIP File Name', 'Scheduled Date', 'Session', 'Deployed At', 'Download Status', 'Downloaded At'];
+    if (user?.role === 'Super Admin') {
+      headers.push('Decryption Password', 'Deploy System IP');
+    }
+    
+    let csvContent = headers.join(',') + '\n';
+    
+    filteredColleges.forEach((clg, idx) => {
+      const deployAtStr = clg.deployedAt ? `${formatTimestampDate(clg.deployedAt)} ${formatTimestampTime(clg.deployedAt)}` : '';
+      let downloadStatus = 'PENDING';
+      if (clg.zipDownloaded) {
+         downloadStatus = (clg.isRedeploy || clg.downloadCount > 1) ? 'RE-DOWNLOADED' : 'DOWNLOADED';
+      } else if (clg.isRedeploy || clg.downloadCount >= 1) {
+         downloadStatus = 'PENDING RE-DOWNLOAD';
+      }
+      const downloadAtDate = (clg.isRedeploy || clg.downloadCount > 1) ? (clg.redownloadedAt || clg.zipDownloadedAt) : (clg.firstDownloadedAt || clg.zipDownloadedAt);
+      const downloadAtStr = downloadAtDate ? `${formatTimestampDate(downloadAtDate)} ${formatTimestampTime(downloadAtDate)}` : '';
+      
+      let row = [
+        idx + 1,
+        `"${clg.collegeCode}"`,
+        `"${clg.collegeName}"`,
+        `"QP_${clg.collegeCode}.zip"`,
+        `"${clg.examDate || ''}"`,
+        `"${clg.examSession || ''}"`,
+        `"${deployAtStr}"`,
+        `"${downloadStatus}"`,
+        `"${downloadAtStr}"`
+      ];
+      
+      if (user?.role === 'Super Admin') {
+        row.push(`"${clg.dayPassword || ''}"`);
+        row.push(`"${clg.redeployedIp || clg.deployedIp || ''}"`);
+      }
+      
+      csvContent += row.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deployment_status_${new Date().getTime()}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <Box>
       {/* Header */}
@@ -223,9 +274,16 @@ export default function Deployment() {
             Deploy scheduled examination session question papers exactly 30 minutes prior to exam start time.
           </Typography>
         </Box>
-        <IconButton onClick={() => fetchColleges(false)} size="small" title="Refresh data" sx={{ color: 'text.secondary', bgcolor: '#E8EDF2' }}>
-          <RefreshIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          {user?.role === 'Super Admin' && (
+            <Button variant="outlined" size="small" onClick={handleExportCSV} startIcon={<GetAppIcon />} sx={{ bgcolor: '#fff', color: '#1E293B', borderColor: '#e2e8f0' }}>
+              Export CSV
+            </Button>
+          )}
+          <IconButton onClick={() => fetchColleges(false)} size="small" title="Refresh data" sx={{ color: 'text.secondary', bgcolor: '#E8EDF2' }}>
+            <RefreshIcon />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Deployment Control Panel */}
@@ -351,22 +409,22 @@ export default function Deployment() {
             <TableHead>
               <TableRow sx={{ bgcolor: '#f8fafc' }}>
                 <TableCell sx={{ fontWeight: 700 }}>S. No</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>College Code</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>College Name</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Exam Centre Code</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Exam Centre Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>ZIP File Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Scheduled Date & Session</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Deployed At</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Download Status</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Downloaded At</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="right">Decryption Password</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Deploy System IP</TableCell>
+                {user?.role === 'Super Admin' && <TableCell sx={{ fontWeight: 700 }} align="right">Decryption Password</TableCell>}
+                {user?.role === 'Super Admin' && <TableCell sx={{ fontWeight: 700 }}>Deploy System IP</TableCell>}
                 <TableCell sx={{ fontWeight: 700 }} align="center">Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredColleges.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} align="center" sx={{ py: 5, color: 'text.secondary' }}>
+                  <TableCell colSpan={user?.role === 'Super Admin' ? 11 : 9} align="center" sx={{ py: 5, color: 'text.secondary' }}>
                     {searchQuery ? 'No deployed ZIP folders match your search.' : 'No question paper ZIP folders have been deployed yet. Use the Session Deployment Controller above to deploy scheduled ZIP folders.'}
                   </TableCell>
                 </TableRow>
@@ -467,42 +525,46 @@ export default function Deployment() {
                         <span style={{ color: '#aaa', fontSize: '0.85rem' }}>—</span>
                       )}
                     </TableCell>
-                    <TableCell align="right">
-                      {clg.dayPassword ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-                          <code style={{ fontSize: '0.82rem', background: '#f5f5f5', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
-                            {clg.dayPassword}
-                          </code>
-                          <IconButton size="small" onClick={() => handleCopyPassword(clg.dayPassword)} title="Copy Password">
-                            <ContentCopyIcon sx={{ fontSize: 14 }} />
-                          </IconButton>
-                        </Box>
-                      ) : (
-                        <span style={{ color: '#aaa', fontSize: '0.85rem' }}>N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {(clg.redeployedIp || clg.deployedIp || clg.redownloadedIp || clg.firstDownloadedIp) ? (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          {(clg.redeployedIp || clg.deployedIp) && (
-                            <Chip
-                              label={`Deploy: ${clg.redeployedIp || clg.deployedIp}`}
-                              size="small"
-                              sx={{ height: 20, fontSize: '0.66rem', fontFamily: 'monospace', fontWeight: 700, bgcolor: '#f1f5f9', color: '#334155' }}
-                            />
-                          )}
-                          {(clg.redownloadedIp || clg.firstDownloadedIp) && (
-                            <Chip
-                              label={`Download: ${clg.redownloadedIp || clg.firstDownloadedIp}`}
-                              size="small"
-                              sx={{ height: 20, fontSize: '0.66rem', fontFamily: 'monospace', fontWeight: 700, bgcolor: '#e0f2fe', color: '#0369a1' }}
-                            />
-                          )}
-                        </Box>
-                      ) : (
-                        <span style={{ color: '#aaa', fontSize: '0.85rem' }}>—</span>
-                      )}
-                    </TableCell>
+                    {user?.role === 'Super Admin' && (
+                      <TableCell align="right">
+                        {clg.dayPassword ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+                            <code style={{ fontSize: '0.82rem', background: '#f5f5f5', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                              {clg.dayPassword}
+                            </code>
+                            <IconButton size="small" onClick={() => handleCopyPassword(clg.dayPassword)} title="Copy Password">
+                              <ContentCopyIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <span style={{ color: '#aaa', fontSize: '0.85rem' }}>N/A</span>
+                        )}
+                      </TableCell>
+                    )}
+                    {user?.role === 'Super Admin' && (
+                      <TableCell>
+                        {(clg.redeployedIp || clg.deployedIp || clg.redownloadedIp || clg.firstDownloadedIp) ? (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            {(clg.redeployedIp || clg.deployedIp) && (
+                              <Chip
+                                label={`Deploy: ${clg.redeployedIp || clg.deployedIp}`}
+                                size="small"
+                                sx={{ height: 20, fontSize: '0.66rem', fontFamily: 'monospace', fontWeight: 700, bgcolor: '#f1f5f9', color: '#334155' }}
+                              />
+                            )}
+                            {(clg.redownloadedIp || clg.firstDownloadedIp) && (
+                              <Chip
+                                label={`Download: ${clg.redownloadedIp || clg.firstDownloadedIp}`}
+                                size="small"
+                                sx={{ height: 20, fontSize: '0.66rem', fontFamily: 'monospace', fontWeight: 700, bgcolor: '#e0f2fe', color: '#0369a1' }}
+                              />
+                            )}
+                          </Box>
+                        ) : (
+                          <span style={{ color: '#aaa', fontSize: '0.85rem' }}>—</span>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, alignItems: 'center' }}>
                         {clg.zipDownloaded ? (

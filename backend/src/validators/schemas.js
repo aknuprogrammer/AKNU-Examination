@@ -10,7 +10,7 @@ const passwordSchema = z.string()
 
 // 1. Auth Schemas
 export const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required').trim(),
+  email: z.string().email('Invalid email address').trim().toLowerCase(),
   password: z.string().min(1, 'Password is required')
 });
 
