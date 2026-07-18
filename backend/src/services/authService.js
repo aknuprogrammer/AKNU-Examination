@@ -38,7 +38,7 @@ export async function loginUser({ username, password, ip, userAgent }) {
 
   const user = await User.findOne({ username });
   if (!user) {
-    const error = new Error('Invalid username or password');
+    const error = new Error('Invalid Username or Password');
     error.statusCode = 401;
     throw error;
   }
@@ -102,7 +102,7 @@ export async function refreshSession(oldRefreshToken) {
   try {
     const decoded = jwt.verify(oldRefreshToken, process.env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.userId);
-    
+
     if (!user || !user.isActive || user.currentSessionId !== decoded.sessionId) {
       const error = new Error('Session is invalid or expired. Please login again.');
       error.statusCode = 401;
@@ -111,8 +111,8 @@ export async function refreshSession(oldRefreshToken) {
 
     // Session rotation: generate new tokens with same sessionId
     const { accessToken, refreshToken } = generateTokens(user, user.currentSessionId);
-    return { 
-      accessToken, 
+    return {
+      accessToken,
       refreshToken,
       user: {
         id: user._id,

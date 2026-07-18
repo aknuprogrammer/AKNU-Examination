@@ -56,7 +56,8 @@ export default function Login() {
         }
       }
     } catch (err) {
-      dispatch(loginFailure(err.message || 'Login failed. Please check credentials.'));
+      const errorMsg = err.response?.data?.message || err.message || 'Login failed. Please check credentials.';
+      dispatch(loginFailure(errorMsg));
     }
   };
 
