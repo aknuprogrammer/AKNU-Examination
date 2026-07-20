@@ -179,20 +179,7 @@ export default function Login() {
               }}
             />
 
-            <Typography
-              variant="overline"
-              sx={{
-                color: '#C2A56D',
-                fontWeight: 800,
-                letterSpacing: '2.5px',
-                fontSize: { xs: '0.68rem', sm: '0.75rem' },
-                lineHeight: 1.2,
-                mb: 0.8,
-                display: 'block'
-              }}
-            >
-              STATE UNIVERSITY OF ANDHRA PRADESH
-            </Typography>
+
 
             <Typography
               component="h1"
@@ -207,7 +194,20 @@ export default function Login() {
             >
               ADIKAVI NANNAYA UNIVERSITY
             </Typography>
-
+            <Typography
+              variant="overline"
+              sx={{
+                color: '#C2A56D',
+                fontWeight: 800,
+                letterSpacing: '2.5px',
+                fontSize: { xs: '0.68rem', sm: '0.75rem' },
+                lineHeight: 1.2,
+                mb: 0.8,
+                display: 'block'
+              }}
+            >
+              STATE UNIVERSITY OF ANDHRA PRADESH
+            </Typography>
             <Box
               sx={{
                 px: 2,
