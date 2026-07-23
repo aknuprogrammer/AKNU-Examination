@@ -223,9 +223,14 @@ export default function Colleges() {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, mb: 2, minHeight: 40, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" fontWeight={800}>
-          Exam Centre <span style={{ color: '#547A95' }}>Management</span>
-        </Typography>
+        <Box>
+          <Typography variant="h4" fontWeight={800}>
+            Exam Centre <span style={{ color: '#547A95' }}>Management</span>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            View, register, and configure affiliated examination centers and official college codes.
+          </Typography>
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
           <Button

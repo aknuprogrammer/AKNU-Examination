@@ -23,7 +23,9 @@ const userSchema = new mongoose.Schema({
       'Confidential Section',
       'Exam Cell Staff',
       'Principal',
-      'Observer'
+      'Observer',
+      'Finance Verifier',
+      'Assistant Registrar'
     ]
   },
   email: {

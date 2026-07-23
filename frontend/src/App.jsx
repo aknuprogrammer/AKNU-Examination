@@ -6,6 +6,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Chip, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 import LockIcon from '@mui/icons-material/Lock';
@@ -24,6 +25,11 @@ import Colleges from './pages/Colleges.jsx';
 import PaperDistribution from './pages/PaperDistribution.jsx';
 import Deployment from './pages/Deployment.jsx';
 import ActivityLogs from './pages/ActivityLogs.jsx';
+import FeePayment from './pages/FeePayment.jsx';
+import CollegeBulkPayment from './pages/CollegeBulkPayment.jsx';
+import PaymentVerification from './pages/PaymentVerification.jsx';
+import PaymentReceipt from './pages/PaymentReceipt.jsx';
+import MasterDataConfig from './pages/MasterDataConfig.jsx';
 
 // Redux & Api
 import { loginSuccess, logoutSuccess } from './store/authSlice.js';
@@ -38,6 +44,7 @@ function IndexPortal() {
   const [pwMessage, setPwMessage] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [copyMsg, setCopyMsg] = useState('');
+  const [countdownSeconds, setCountdownSeconds] = useState(null);
 
   // OTP Verification Modal state
   const [otpDialogOpen, setOtpDialogOpen] = useState(false);
@@ -86,6 +93,50 @@ function IndexPortal() {
     if (!user || user.role !== 'Principal') return;
     loadPortal();
   }, [user]);
+
+  // Live 10-Minute Countdown Timer for Decryption Password Release
+  useEffect(() => {
+    if (!college || !college.isDeployed || !college.deployedAt) {
+      setCountdownSeconds(null);
+      return;
+    }
+
+    const computeRemaining = () => {
+      const deployedTime = new Date(college.deployedAt).getTime();
+      const unlockTime = deployedTime + 10 * 60 * 1000;
+      return Math.max(0, Math.floor((unlockTime - Date.now()) / 1000));
+    };
+
+    const initialRem = computeRemaining();
+    setCountdownSeconds(initialRem);
+
+    if (initialRem <= 0) {
+      if (!password && college.zipDownloaded) {
+        loadPortal();
+      }
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const rem = computeRemaining();
+      setCountdownSeconds(rem);
+
+      if (rem <= 0) {
+        clearInterval(interval);
+        // AUTOMATICALLY RE-FETCH PORTAL TO RELEASE PASSWORD ON ZERO
+        loadPortal();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [college?.isDeployed, college?.deployedAt, college?.zipDownloaded, password]);
+
+  const formatCountdown = (secs) => {
+    if (secs === null || secs === undefined || secs <= 0) return '00:00';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
   // Telemetry & Anti-Tamper Shield (Monitors Network Drops, DevTools Inspection, and Tab Switches)
   useEffect(() => {
@@ -241,67 +292,99 @@ function IndexPortal() {
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1, overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: 600 }}>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#f5f7fa' }}>
-                <TableCell sx={{ fontWeight: 700, width: 60 }}>S. No</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>ZIP File Name</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>ZIP Password</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: 120 }} align="center">Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {!college || !college.zipFileHash || !college.isDeployed ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 4, color: college?.isExpired ? 'error.main' : 'text.secondary', fontStyle: 'italic', fontWeight: college?.isExpired ? 600 : 400 }}>
-                    {college?.isExpired
-                      ? '⚡ Question paper download window (1 hour from deployment) has expired. The college question paper ZIP folder is no longer accessible in the portal.'
-                      : 'No college question paper ZIP folder is available for download in your portal yet.'}
-                  </TableCell>
+        <>
+          {college?.isDeployed && !password && countdownSeconds !== null && countdownSeconds > 0 && (
+            <Alert severity="warning" icon={<ScheduleIcon fontSize="inherit" />} sx={{ mb: 2.5, fontWeight: 600, borderRadius: 1.5, bgcolor: '#fffbe6', color: '#d48806', border: '1px solid #ffe58f' }}>
+              ⏳ <strong>10-Minute Lock Period Active:</strong> Question papers are deployed! The decryption password will automatically reveal in <strong>{formatCountdown(countdownSeconds)}</strong>. (You can verify OTP & download the ZIP archive now).
+            </Alert>
+          )}
+
+          <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 1, overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+            <Table size="small" sx={{ minWidth: 600 }}>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f7fa' }}>
+                  <TableCell sx={{ fontWeight: 700, width: 60 }}>S. No</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>ZIP File Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>ZIP Password</TableCell>
+                  <TableCell sx={{ fontWeight: 700, width: 120 }} align="center">Action</TableCell>
                 </TableRow>
-              ) : (
-                <TableRow hover>
-                  {/* S. No */}
-                  <TableCell sx={{ fontWeight: 600 }}>1</TableCell>
+              </TableHead>
+              <TableBody>
+                {!college || !college.zipFileHash || !college.isDeployed ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ py: 4, color: college?.isExpired ? 'error.main' : 'text.secondary', fontStyle: 'italic', fontWeight: college?.isExpired ? 600 : 400 }}>
+                      {college?.isExpired
+                        ? '⚡ Question paper download window (1 hour from deployment) has expired. The college question paper ZIP folder is no longer accessible in the portal.'
+                        : 'No college question paper ZIP folder is available for download in your portal yet.'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  <TableRow hover>
+                    {/* S. No */}
+                    <TableCell sx={{ fontWeight: 600 }}>1</TableCell>
 
-                  {/* ZIP File Name */}
-                  <TableCell>
-
-                    <Box>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                        QP_{college.collegeCode}.zip
-                      </Typography>
-                      {college.examDate && (
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          Exam: {college.examDate} ({college.examSession || 'AM'} Session)
+                    {/* ZIP File Name */}
+                    <TableCell>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                          QP_{college.collegeCode}.zip
                         </Typography>
-                      )}
-                    </Box>
-
-                  </TableCell>
-
-                  {/* ZIP Password */}
-                  <TableCell>
-                    {password ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <code style={{ fontSize: '0.85rem', background: '#f0fdf4', padding: '2px 10px', borderRadius: 4, fontWeight: 700, color: '#16a34a', letterSpacing: 1 }}>
-                          {password}
-                        </code>
-                        <Tooltip title={copyMsg || 'Copy password'}>
-                          <IconButton size="small" onClick={handleCopy}>
-                            <ContentCopyIcon sx={{ fontSize: 14 }} />
-                          </IconButton>
-                        </Tooltip>
+                        {college.examDate && (
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            Exam: {college.examDate} ({college.examSession || 'AM'} Session)
+                          </Typography>
+                        )}
                       </Box>
-                    ) : (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    </TableCell>
+
+                    {/* ZIP Password */}
+                    <TableCell>
+                      {password ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <code style={{ fontSize: '0.85rem', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '3px 10px', borderRadius: 4, fontWeight: 700, color: '#16a34a', letterSpacing: 1 }}>
+                            {password}
+                          </code>
+                          <Tooltip title={copyMsg || 'Copy password'}>
+                            <IconButton size="small" onClick={handleCopy}>
+                              <ContentCopyIcon sx={{ fontSize: 14 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      ) : !college?.isDeployed ? (
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                          Question papers not deployed yet.
+                        </Typography>
+                      ) : !college?.zipDownloaded ? (
                         <Typography variant="caption" color="warning.dark" fontStyle="italic" fontWeight={600}>
-                          {pwMessage || 'Decryption password locked.'}
+                          Verify OTP & download ZIP to view password.
                         </Typography>
-                      </Box>
-                    )}
-                  </TableCell>
+                      ) : countdownSeconds !== null && countdownSeconds > 0 ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Chip
+                            icon={<ScheduleIcon sx={{ fontSize: '1rem !important' }} />}
+                            label={`Password unlocks in ${formatCountdown(countdownSeconds)}`}
+                            color="warning"
+                            variant="outlined"
+                            sx={{
+                              fontWeight: 800,
+                              fontFamily: 'monospace',
+                              fontSize: '0.78rem',
+                              bgcolor: '#fffbe6',
+                              borderColor: '#ffe58f',
+                              color: '#d48806',
+                              '& .MuiChip-icon': { color: '#d48806' }
+                            }}
+                          />
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CircularProgress size={14} sx={{ color: '#16a34a' }} />
+                          <Typography variant="caption" color="success.main" fontWeight={700}>
+                            Releasing password…
+                          </Typography>
+                        </Box>
+                      )}
+                    </TableCell>
 
                   {/* Action — Download */}
                   <TableCell align="center">
@@ -335,7 +418,8 @@ function IndexPortal() {
             </TableBody>
           </Table>
         </TableContainer>
-      )}
+      </>
+    )}
 
       {/* OTP Verification Modal */}
       <Dialog open={otpDialogOpen} onClose={() => { if (!otpLoading) setOtpDialogOpen(false); }} maxWidth="xs" fullWidth sx={{ '& .MuiDialog-paper': { m: { xs: 1.5, sm: 4 }, width: { xs: 'calc(100% - 24px)', sm: 'auto' } } }}>
@@ -464,6 +548,10 @@ export default function App() {
         }
       />
 
+      {/* Public Fee Payment Route */}
+      <Route path="/pay-fee" element={<FeePayment />} />
+      <Route path="/receipt/:receiptNo" element={<PaymentReceipt />} />
+
       {/* Main Protected Routes Panel */}
       <Route
         path="/"
@@ -502,6 +590,36 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={adminRoles}>
               <Deployment />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* College Bulk Payment */}
+        <Route
+          path="college-bulk-payment"
+          element={
+            <ProtectedRoute allowedRoles={['Super Admin', 'Admin', 'Principal', 'Controller of Examinations']}>
+              <CollegeBulkPayment />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Payment Verification Dashboard */}
+        <Route
+          path="payment-verification"
+          element={
+            <ProtectedRoute allowedRoles={['Super Admin', 'Admin', 'Finance Verifier', 'Assistant Registrar', 'Controller of Examinations']}>
+              <PaymentVerification />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Master Data Configuration */}
+        <Route
+          path="master-data-config"
+          element={
+            <ProtectedRoute allowedRoles={['Super Admin', 'Admin', 'Finance Verifier', 'Controller of Examinations']}>
+              <MasterDataConfig />
             </ProtectedRoute>
           }
         />

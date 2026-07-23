@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base API URL
-const API_URL = 'http://localhost:5000/api';
+// Base API URL from environment variable (Vite prefix VITE_API_URL), falling back to local backend server
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -31,8 +31,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // Check if error is 401, not already retrying, and not from the login route
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/login')) {
+    // Check if error is 401, not already retrying, and not from login or refresh routes
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('/auth/login') &&
+      !originalRequest.url.includes('/auth/refresh')
+    ) {
       originalRequest._retry = true;
       try {
         // Request token refresh

@@ -176,3 +176,39 @@ export const sendOtpEmail = async ({ toEmail, collegeName, otp }) => {
     return false;
   }
 };
+
+/**
+ * Sends a 6-digit OTP email to student for Fee Payment Verification
+ */
+export const sendStudentFeeOtpEmail = async ({ toEmail, studentName, hallTicketNo, otp }) => {
+  const from = process.env.EMAIL_FROM || '"AKNU Examination Cell" <noreply@aknu.edu.in>';
+  const subject = 'AKNU Fee Payment Verification - One Time Password (OTP)';
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #1e3a8a;">Hello, ${studentName}</h2>
+      <p>Your Hall Ticket / Roll Number: <strong>${hallTicketNo}</strong></p>
+      <p>Please use the following 6-digit One-Time Password (OTP) to complete your Fee Payment Verification:</p>
+      <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-radius: 6px; margin: 20px 0; border: 1px solid #e2e8f0;">
+        <span style="font-size: 2.2em; letter-spacing: 6px; font-weight: bold; color: #1e3a8a; font-family: monospace;">${otp}</span>
+      </div>
+      <p style="color: #ef4444; font-weight: bold;">Note: This OTP is valid for 10 minutes. Do not share this OTP with anyone.</p>
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;"/>
+      <p style="font-size: 0.85em; color: #94a3b8; text-align: center;">This is an automated security email from AKNU Fee Payment Portal.</p>
+    </div>
+  `;
+  const textContent = `Hello ${studentName}, your OTP for AKNU Fee Payment Verification (HT No: ${hallTicketNo}) is: ${otp}. Valid for 10 minutes.`;
+
+  const transporter = getTransporter();
+  if (!transporter) {
+    logger.info(`[MOCK STUDENT FEE OTP EMAIL SENT TO: ${toEmail}] Student: ${studentName} (${hallTicketNo}) | OTP: ${otp}`);
+    return true;
+  }
+  try {
+    await transporter.sendMail({ from, to: toEmail, subject, text: textContent, html: htmlContent });
+    logger.info(`Student Fee OTP email successfully sent to: ${toEmail}`);
+    return true;
+  } catch (error) {
+    logger.error(`Error sending Student Fee OTP email to ${toEmail}:`, error);
+    return false;
+  }
+};

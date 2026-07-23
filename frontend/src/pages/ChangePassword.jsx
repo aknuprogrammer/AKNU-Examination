@@ -65,7 +65,7 @@ export default function ChangePassword() {
             <Typography variant="h5" component="h1" fontWeight={700} gutterBottom>
               Update Password
             </Typography>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
+            <Typography variant="body2" color="text.secondary" align="center">
               You must update your temporary password to secure your account before proceeding.
             </Typography>
           </Box>

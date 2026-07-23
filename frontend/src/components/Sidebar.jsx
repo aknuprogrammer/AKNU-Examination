@@ -35,7 +35,9 @@ export default function Sidebar({ mobileOpen, onDrawerClose }) {
     'Controller of Examinations',
     'Confidential Section',
     'Exam Cell Staff',
-    'Observer'
+    'Observer',
+    'Finance Verifier',
+    'Assistant Registrar'
   ].includes(user.role);
 
   const menuItems = [];
@@ -44,7 +46,9 @@ export default function Sidebar({ mobileOpen, onDrawerClose }) {
     menuItems.push(
       { text: 'Exam Centres', path: '/colleges', icon: <SchoolIcon /> },
       { text: 'QP & Password Upload', path: '/paper-distribution', icon: <CloudUploadIcon /> },
-      { text: 'Deployment', path: '/deployment', icon: <RocketLaunchIcon /> }
+      { text: 'Deployment', path: '/deployment', icon: <RocketLaunchIcon /> },
+      // { text: 'Fee Verifications', path: '/payment-verification', icon: <DashboardIcon /> },
+      // { text: 'Master Data Config', path: '/master-data-config', icon: <DashboardIcon /> }
     );
     
     if (user.role === 'Super Admin') {
@@ -52,7 +56,8 @@ export default function Sidebar({ mobileOpen, onDrawerClose }) {
     }
   } else if (user.role === 'Principal') {
     menuItems.push(
-      { text: 'Exam Centre Portal', path: '/', icon: <DashboardIcon /> }
+      { text: 'Exam Centre Portal', path: '/', icon: <DashboardIcon /> },
+      // { text: 'Bulk Exam Fee Payment', path: '/college-bulk-payment', icon: <CloudUploadIcon /> }
     );
   }
 

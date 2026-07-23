@@ -29,9 +29,11 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^9.0.3",
     "pdf-lib": "^1.17.1",
+    "razorpay": "^2.9.8",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

@@ -218,20 +218,20 @@ export default function Deployment() {
     if (user?.role === 'Super Admin') {
       headers.push('Decryption Password', 'Deploy System IP');
     }
-    
+
     let csvContent = headers.join(',') + '\n';
-    
+
     filteredColleges.forEach((clg, idx) => {
       const deployAtStr = clg.deployedAt ? `${formatTimestampDate(clg.deployedAt)} ${formatTimestampTime(clg.deployedAt)}` : '';
       let downloadStatus = 'PENDING';
       if (clg.zipDownloaded) {
-         downloadStatus = (clg.isRedeploy || clg.downloadCount > 1) ? 'RE-DOWNLOADED' : 'DOWNLOADED';
+        downloadStatus = (clg.isRedeploy || clg.downloadCount > 1) ? 'RE-DOWNLOADED' : 'DOWNLOADED';
       } else if (clg.isRedeploy || clg.downloadCount >= 1) {
-         downloadStatus = 'PENDING RE-DOWNLOAD';
+        downloadStatus = 'PENDING RE-DOWNLOAD';
       }
       const downloadAtDate = (clg.isRedeploy || clg.downloadCount > 1) ? (clg.redownloadedAt || clg.zipDownloadedAt) : (clg.firstDownloadedAt || clg.zipDownloadedAt);
       const downloadAtStr = downloadAtDate ? `${formatTimestampDate(downloadAtDate)} ${formatTimestampTime(downloadAtDate)}` : '';
-      
+
       let row = [
         idx + 1,
         `"${clg.collegeCode}"`,
@@ -243,15 +243,15 @@ export default function Deployment() {
         `"${downloadStatus}"`,
         `"${downloadAtStr}"`
       ];
-      
+
       if (user?.role === 'Super Admin') {
         row.push(`"${clg.dayPassword || ''}"`);
         row.push(`"${clg.redeployedIp || clg.deployedIp || ''}"`);
       }
-      
+
       csvContent += row.join(',') + '\n';
     });
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -384,7 +384,7 @@ export default function Deployment() {
             value={downloadStatusFilter}
             onChange={(e) => setDownloadStatusFilter(e.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: { xs: '100%', sm: 210 }, bgcolor: '#fff' }}
+            sx={{ width: { xs: '100%', sm: 210 } }}
           >
             <MenuItem value="ALL">All Statuses</MenuItem>
             <MenuItem value="PENDING">Pending</MenuItem>
@@ -458,6 +458,11 @@ export default function Deployment() {
                           <div style={{ fontWeight: 600, color: '#64748b', fontSize: '0.74rem', marginBottom: '4px' }}>
                             🕒 {formatTimestampTime(clg.deployedAt)}
                           </div>
+                          {(Date.now() - new Date(clg.deployedAt).getTime()) < 10 * 60 * 1000 ? (
+                            <Chip label="⏳ 10-Min Lock Active" size="small" sx={{ height: 18, fontSize: '0.64rem', bgcolor: '#fffbe6', color: '#d48806', fontWeight: 800, mt: 0.3 }} />
+                          ) : (
+                            <Chip label="🔓 Password Unlocked for Centre" size="small" sx={{ height: 18, fontSize: '0.64rem', bgcolor: '#f0fdf4', color: '#16a34a', fontWeight: 800, mt: 0.3 }} />
+                          )}
                           {clg.initialDeployedAt && new Date(clg.initialDeployedAt).getTime() !== new Date(clg.deployedAt).getTime() && (
                             <div style={{ color: '#0369a1', fontSize: '0.66rem', marginTop: '3px', fontWeight: 700 }}>
                               Initial: {formatTimestampTime(clg.initialDeployedAt)}

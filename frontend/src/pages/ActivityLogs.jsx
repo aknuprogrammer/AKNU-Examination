@@ -53,11 +53,14 @@ export default function ActivityLogs() {
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const val = event.target.value;
+    setRowsPerPage(val === 'ALL' ? 'ALL' : parseInt(val, 10));
     setPage(0);
   };
 
-  const paginatedLogs = filteredLogs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedLogs = rowsPerPage === 'ALL' 
+    ? filteredLogs 
+    : filteredLogs.slice(page * Number(rowsPerPage), page * Number(rowsPerPage) + Number(rowsPerPage));
 
   const formatDetails = (details) => {
     if (!details || Object.keys(details).length === 0) return '—';
@@ -99,9 +102,14 @@ export default function ActivityLogs() {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" fontWeight={800}>
-          Activity <span style={{ color: '#C2A56D' }}>Logs</span>
-        </Typography>
+        <Box>
+          <Typography variant="h5" fontWeight={800}>
+            Activity <span style={{ color: '#C2A56D' }}>Logs</span>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Audit administrative actions, user logins, paper downloads, and security events across the portal.
+          </Typography>
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button variant="outlined" size="small" onClick={handleExportCSV} startIcon={<GetAppIcon />} sx={{ bgcolor: '#fff' }}>
             Export CSV
@@ -166,7 +174,9 @@ export default function ActivityLogs() {
             onChange={handleChangeRowsPerPage}
             sx={{ minWidth: 140 }}
           >
+            <MenuItem value="ALL">All</MenuItem>
             <MenuItem value={10}>10</MenuItem>
+            <MenuItem value={20}>20</MenuItem>
             <MenuItem value={50}>50</MenuItem>
             <MenuItem value={100}>100</MenuItem>
           </TextField>
@@ -200,7 +210,7 @@ export default function ActivityLogs() {
               ) : (
                 paginatedLogs.map((log, index) => (
                   <TableRow key={log._id} hover>
-                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                    <TableCell>{rowsPerPage === 'ALL' ? index + 1 : page * Number(rowsPerPage) + index + 1}</TableCell>
                     <TableCell>{new Date(log.createdAt).toLocaleString()}</TableCell>
                     <TableCell>{log.username}</TableCell>
                     <TableCell><Chip label={log.role} size="small" variant="outlined" /></TableCell>
@@ -216,14 +226,6 @@ export default function ActivityLogs() {
               )}
             </TableBody>
           </Table>
-          <TablePagination
-            component="div"
-            count={filteredLogs.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[]}
-          />
         </TableContainer>
       )}
     </Box>

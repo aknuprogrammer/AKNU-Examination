@@ -139,9 +139,9 @@ export default function PaperDistribution() {
       // Initialise per-college password map with auto-generated passwords
       const pwMap = {};
       const showMap = {};
-      detected.forEach(({ code }) => { 
-        pwMap[code] = code + '@' + Math.random().toString(36).substring(2, 8).toUpperCase(); 
-        showMap[code] = false; 
+      detected.forEach(({ code }) => {
+        pwMap[code] = code + '@' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        showMap[code] = false;
       });
       setDetectedColleges(detected);
       setPerCollegePasswords(pwMap);
@@ -156,7 +156,7 @@ export default function PaperDistribution() {
         totalPages: detected.reduce((acc, curr) => acc + curr.count, 0)
       }).then(res => {
         if (res.data.success) setPreflightReport(res.data);
-      }).catch(() => {}).finally(() => setPreflightLoading(false));
+      }).catch(() => { }).finally(() => setPreflightLoading(false));
     } catch (err) {
       setZipParseError('Failed to read the ZIP file. Please ensure it is a valid ZIP archive.');
       setZipFile(null);
@@ -275,9 +275,14 @@ export default function PaperDistribution() {
     <Box>
       {/* Header Container (aligned exactly with Colleges.jsx) */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, mb: 2, minHeight: 40, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" fontWeight={800}>
-          Quetion Paper & Password Upload
-        </Typography>
+        <Box>
+          <Typography variant="h4" fontWeight={800}>
+            Question Paper & Password Upload
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Upload encrypted question paper archives and manage secure college dispatch passwords.
+          </Typography>
+        </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
           <IconButton onClick={() => fetchColleges(false)} size="small" title="Refresh Table data" sx={{ color: 'text.secondary', mr: 1 }}>
@@ -325,7 +330,7 @@ export default function PaperDistribution() {
           value={downloadStatusFilter}
           onChange={(e) => setDownloadStatusFilter(e.target.value)}
           slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ width: { xs: '100%', sm: 210 }, bgcolor: '#fff', borderRadius: 2 }}
+          sx={{ width: { xs: '100%', sm: 210 }, borderRadius: 2 }}
         >
           <MenuItem value="ALL">All Statuses</MenuItem>
           <MenuItem value="PENDING">Pending</MenuItem>
@@ -409,7 +414,7 @@ export default function PaperDistribution() {
                           {clg.dayPassword ? (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <code>{clg.dayPassword}</code>
-                              <IconButton size="small" onClick={() => handleCopyPassword(clg.dayPassword)} title="Copy Password">
+                              <IconButton size="small" onClick={() => handleCopyPassword(clg.dayPassword)} title="Copy Password" sx={{ color: 'text.secondary' }}>
                                 <ContentCopyIcon sx={{ fontSize: 14 }} />
                               </IconButton>
                             </Box>
@@ -423,7 +428,7 @@ export default function PaperDistribution() {
                           onClick={() => handleDownloadZip(clg.collegeCode)}
                           disabled={!clg.zipFileHash}
                           size="small"
-                          sx={{ color: clg.zipFileHash ? 'primary.main' : 'text.disabled', mr: 0.5 }}
+                          sx={{ color: clg.zipFileHash ? 'text.secondary' : 'text.disabled', mr: 1 }}
                           title="Download College Question Paper ZIP Folder"
                         >
                           <DownloadIcon fontSize="small" />
@@ -432,7 +437,7 @@ export default function PaperDistribution() {
                           onClick={() => handleDeletePapers(clg.collegeCode)}
                           disabled={!clg.zipFileHash}
                           size="small"
-                          sx={{ color: clg.zipFileHash ? 'error.main' : 'text.disabled' }}
+                          sx={{ color: clg.zipFileHash ? 'text.secondary' : 'text.disabled' }}
                           title="Delete College Question Paper ZIP Folder & Password"
                         >
                           <DeleteIcon fontSize="small" />
