@@ -11,16 +11,16 @@ export default function Navbar({ onDrawerToggle }) {
   const { user } = useSelector((state) => state.auth);
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
+    <AppBar
+      position="fixed"
+      sx={{
         top: 0,
         left: 0,
         width: '100%',
         height: 76,
-        background: 'linear-gradient(135deg, rgba(44, 57, 71, 0.98) 0%, rgba(30, 40, 50, 0.98) 100%)', 
-        backdropFilter: 'blur(16px)', 
-        borderBottom: '2px solid rgba(194, 165, 109, 0.4)', 
+        background: 'linear-gradient(135deg, rgba(44, 57, 71, 0.98) 0%, rgba(30, 40, 50, 0.98) 100%)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '2px solid rgba(194, 165, 109, 0.4)',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
         zIndex: (theme) => theme.zIndex.drawer + 2
       }}
@@ -38,26 +38,26 @@ export default function Navbar({ onDrawerToggle }) {
               <MenuIcon />
             </IconButton>
           )}
-          
-          <Box 
-            component="img" 
-            src="/aknu_logo.png" 
-            alt="AKNU Emblem" 
-            sx={{ 
-              height: { xs: 46, sm: 54 }, 
-              width: 'auto', 
+
+          <Box
+            component="img"
+            src="/aknu_logo.png"
+            alt="AKNU Emblem"
+            sx={{
+              height: { xs: 46, sm: 54 },
+              width: 'auto',
               mr: { xs: 1.2, sm: 2 },
               filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4))'
-            }} 
+            }}
           />
 
           <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography 
-                variant="h6" 
-                component="div" 
-                sx={{ 
-                  fontWeight: 800, 
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  fontWeight: 800,
                   letterSpacing: '0.4px',
                   color: '#ffffff',
                   fontSize: { xs: '0.92rem', sm: '1.15rem', lg: '1.25rem' },
@@ -67,29 +67,29 @@ export default function Navbar({ onDrawerToggle }) {
               >
                 ADIKAVI NANNAYA UNIVERSITY
               </Typography>
-              <Chip 
-                label="5 Star Rated" 
-                size="small" 
+              <Chip
+                label="5 Star Rated"
+                size="small"
                 icon={<StarIcon sx={{ color: '#FFD700 !important', fontSize: '14px !important' }} />}
-                sx={{ 
+                sx={{
                   display: { xs: 'none', lg: 'inline-flex' },
-                  height: 22, 
-                  fontSize: '0.68rem', 
-                  fontWeight: 800, 
-                  bgcolor: 'rgba(255, 215, 0, 0.15)', 
-                  color: '#FFD700', 
+                  height: 22,
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  bgcolor: 'rgba(255, 215, 0, 0.15)',
+                  color: '#FFD700',
                   border: '1px solid rgba(255, 215, 0, 0.4)',
                   ml: 0.5
-                }} 
+                }}
               />
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 0.8, sm: 1.2 }, mt: 0.3 }}>
-              <Typography 
-                sx={{ 
-                  color: '#C2A56D', 
-                  fontWeight: 700, 
-                  fontSize: { xs: '0.62rem', sm: '0.72rem' }, 
+              <Typography
+                sx={{
+                  color: '#C2A56D',
+                  fontWeight: 700,
+                  fontSize: { xs: '0.62rem', sm: '0.72rem' },
                   letterSpacing: '0.3px',
                   textTransform: 'uppercase'
                 }}
@@ -112,10 +112,10 @@ export default function Navbar({ onDrawerToggle }) {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1, flexShrink: 0 }}>
-          <Box 
-            sx={{ 
-              display: { xs: 'none', md: 'flex' }, 
-              flexDirection: 'column', 
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              flexDirection: 'column',
               alignItems: 'flex-end',
               px: 1.5,
               py: 0.5,
